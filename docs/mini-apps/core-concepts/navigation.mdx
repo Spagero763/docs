@@ -256,19 +256,23 @@ Launch your mini app directly from external sources like websites, QR codes, or 
   Launch Mini App
 </a>
 ```
-### Direct Messages (Users or Agents)
+
+
+### Chat Deeplinks
+
+#### Direct Messages (Users or Agents)
 
 Start a private conversation with a specific user or agent.
 
 ```typescript DeeplinkDM.tsx
 <button 
-  onClick={() => openUrl(`cbwallet://messaging/${address}`)} 
->
+  onClick={() => openUrl(`cbwallet://messaging/${address}`)} >
   Send Direct Message
 </button>
 ```
 
-### Group Messages
+
+#### Group Messages
 
 Navigate users directly to a specific group chat conversation.
 
