@@ -19,50 +19,100 @@ Hex-encoded bytes to append to the transaction calldata. This value is appended 
 When `true`, the wallet may ignore the capability if it doesn't support it. When `false` or omitted, the wallet must support the capability or reject the request.
 </ParamField>
 
-## Type Definition
+## Returns
 
-```typescript
-type DataSuffixCapability = {
-  value: `0x${string}`;
-  optional?: boolean;
-}
-```
+<ResponseField name="dataSuffix" type="object">
+The data suffix capability configuration for the specified chain.
+
+<Expandable title="DataSuffix capability properties">
+<ResponseField name="supported" type="boolean">
+Indicates whether the wallet supports appending data suffixes to transaction calldata.
+</ResponseField>
+</Expandable>
+</ResponseField>
 
 ## Example Usage
 
-```typescript Example
+<RequestExample>
+```typescript Check DataSuffix Support
+const capabilities = await provider.request({
+  method: 'wallet_getCapabilities',
+  params: [userAddress]
+});
+
+const dataSuffixSupport = capabilities["0x2105"]?.dataSuffix;
+```
+
+```typescript Send Transaction with DataSuffix
 const result = await provider.request({
   method: "wallet_sendCalls",
   params: [{
     version: "1.0",
     chainId: "0x2105",
     from: userAddress,
-    calls: [
-      {
-        to: contractAddress,
-        value: "0x0",
-        data: encodedFunctionCall
-      }
-    ],
+    calls: [{
+      to: "0x1234567890123456789012345678901234567890",
+      value: "0x0",
+      data: "0xa9059cbb000000000000000000000000..."
+    }],
     capabilities: {
       dataSuffix: {
-        value: "0x1234567890abcdef1234567890abcdef", // Your attribution suffix
-        optional: true // Wallet can proceed even if it doesn't support dataSuffix
+        value: "0x1234567890abcdef1234567890abcdef",
+        optional: true
       }
     }
   }]
 });
 ```
+</RequestExample>
 
-## Primary Use Case: Builder Codes
+<ResponseExample>
+```json Capability Response (Supported)
+{
+  "0x2105": {
+    "dataSuffix": {
+      "supported": true
+    }
+  }
+}
+```
+
+```json Capability Response (Unsupported)
+{
+  "0x2105": {
+    "dataSuffix": {
+      "supported": false
+    }
+  }
+}
+```
+</ResponseExample>
+
+## Error Handling
+
+| Code | Message | Description |
+| ---- | ------- | ----------- |
+| 4100 | Data suffix not supported | Wallet does not support data suffix functionality |
+| 5700 | DataSuffix capability required | Transaction requires dataSuffix but wallet doesn't support it |
+
+## How It Works
+
+When a wallet receives a `dataSuffix` capability, the suffix is appended to `userOp.callData`. The suffix bytes are concatenated directly to the end of the calldata, making them available for onchain parsing and attribution.
+
+## Use Cases
+
+### Builder Codes Attribution
 
 The primary use case for `dataSuffix` is [Builder Codes](/base-chain/quickstart/builder-codes) attribution. Builder Codes are unique identifiers that allow apps to receive attribution for onchain activity they generate.
 
-When you register on [base.dev](https://base.dev), you receive a Builder Code that can be encoded as a `dataSuffix`.
-
 ```typescript
-// Example: Using Builder Code with dataSuffix
-const builderCodeSuffix = "0x..."; // Provided by base.dev
+import { Attribution } from "ox/erc8021";
+
+// Example: Using Builder Code with dataSuffix.
+// Using the ox/erc8021 package to generate the ERC-8021 suffix from your builder code.
+const builderCodeSuffix = Attribution.toDataSuffix({
+  codes: ['bc_foobar'], // Get your code from base.dev
+});
 
 await provider.request({
   method: "wallet_sendCalls",
@@ -77,18 +127,15 @@ await provider.request({
     }],
     capabilities: {
       dataSuffix: {
-        value: builderCodeSuffix
+        value: builderCodeSuffix,
+        optional: true
       }
     }
   }]
 });
 ```
 
-For complete Builder Codes integration instructions, see the [Builder Codes guide](/base-chain/quickstart/builder-codes).
-
-## How It Works
-
-When a wallet receives a `dataSuffix` capability, the suffix is appended to `userOp.callData`. The suffix bytes are concatenated directly to the end of the calldata, making them available for onchain parsing and attribution.
+Register on [base.dev](https://base.dev) to get your Builder Code for proper attribution.
 
 ## Best Practices
 
