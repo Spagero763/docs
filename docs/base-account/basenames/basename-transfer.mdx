@@ -168,3 +168,8 @@ To transfer a Basename while preserving custom records:
 <Warning>
   **Smart Contract Transfers**: Only transfer Basenames to smart contracts (multisigs, DAOs, vaults) if you're certain the contract can manage ERC-721 tokens and sign transactions. Lost access cannot be recovered.
 </Warning>
+
+If transferring to a smart contract:
+- Ensure the contract implements ERC-721 receiver
+- Verify you have the necessary signatures/permissions to interact with it
+- Test with a less valuable name first if possible
